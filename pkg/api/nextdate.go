@@ -12,12 +12,12 @@ const dateFormat = "20060102"
 
 func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	if repeat == "" {
-		return "", fmt.Errorf("repeat rule is not specified")
+		return "", fmt.Errorf("не указано правило повторения")
 	}
 
 	date, err := time.Parse(dateFormat, dstart)
 	if err != nil {
-		return "", fmt.Errorf("invalid date %q: %w", dstart, err)
+		return "", fmt.Errorf("некорректная дата %q: %w", dstart, err)
 	}
 
 	parts := strings.Fields(repeat)
@@ -37,7 +37,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 
 	case "y":
 		if len(parts) != 1 {
-			return "", fmt.Errorf("invalid repeat format %q", repeat)
+			return "", fmt.Errorf("некорректный формат правила повторения %q", repeat)
 		}
 		for {
 			date = date.AddDate(1, 0, 0)
@@ -71,7 +71,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		}
 
 	default:
-		return "", fmt.Errorf("unsupported repeat format %q", repeat)
+		return "", fmt.Errorf("неподдерживаемый формат правила повторения %q", repeat)
 	}
 
 	return date.Format(dateFormat), nil
@@ -87,25 +87,25 @@ func afterNow(date, now time.Time) bool {
 
 func parseDayInterval(parts []string) (int, error) {
 	if len(parts) != 2 {
-		return 0, fmt.Errorf("invalid repeat format for 'd' rule")
+		return 0, fmt.Errorf("некорректный формат правила 'd'")
 	}
 	interval, err := strconv.Atoi(parts[1])
 	if err != nil {
-		return 0, fmt.Errorf("invalid day interval: %w", err)
+		return 0, fmt.Errorf("некорректный интервал в днях: %w", err)
 	}
 	if interval < 1 || interval > 400 {
-		return 0, fmt.Errorf("day interval must be between 1 and 400")
+		return 0, fmt.Errorf("интервал в днях должен быть от 1 до 400")
 	}
 	return interval, nil
 }
 
 func parseWeekdays(parts []string) (map[int]bool, error) {
 	if len(parts) != 2 {
-		return nil, fmt.Errorf("invalid repeat format for 'w' rule")
+		return nil, fmt.Errorf("некорректный формат правила 'w'")
 	}
 	values, err := parseIntList(parts[1], 1, 7)
 	if err != nil {
-		return nil, fmt.Errorf("invalid weekday list: %w", err)
+		return nil, fmt.Errorf("некорректный список дней недели: %w", err)
 	}
 	set := make(map[int]bool, len(values))
 	for _, v := range values {
@@ -116,16 +116,16 @@ func parseWeekdays(parts []string) (map[int]bool, error) {
 
 func parseMonthDays(parts []string) (days []int, months map[int]bool, err error) {
 	if len(parts) < 2 || len(parts) > 3 {
-		return nil, nil, fmt.Errorf("invalid repeat format for 'm' rule")
+		return nil, nil, fmt.Errorf("некорректный формат правила 'm'")
 	}
 	days, err = parseDayOfMonthList(parts[1])
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid day-of-month list: %w", err)
+		return nil, nil, fmt.Errorf("некорректный список дней месяца: %w", err)
 	}
 	if len(parts) == 3 {
 		values, err := parseIntList(parts[2], 1, 12)
 		if err != nil {
-			return nil, nil, fmt.Errorf("invalid month list: %w", err)
+			return nil, nil, fmt.Errorf("некорректный список месяцев: %w", err)
 		}
 		months = make(map[int]bool, len(values))
 		for _, v := range values {
@@ -141,15 +141,15 @@ func parseIntList(s string, min, max int) ([]int, error) {
 	for _, item := range items {
 		n, err := strconv.Atoi(item)
 		if err != nil {
-			return nil, fmt.Errorf("invalid value %q", item)
+			return nil, fmt.Errorf("некорректное значение %q", item)
 		}
 		if n < min || n > max {
-			return nil, fmt.Errorf("value %d out of range [%d, %d]", n, min, max)
+			return nil, fmt.Errorf("значение %d вне диапазона [%d, %d]", n, min, max)
 		}
 		result = append(result, n)
 	}
 	if len(result) == 0 {
-		return nil, fmt.Errorf("empty value list")
+		return nil, fmt.Errorf("пустой список значений")
 	}
 	return result, nil
 }
@@ -160,15 +160,15 @@ func parseDayOfMonthList(s string) ([]int, error) {
 	for _, item := range items {
 		n, err := strconv.Atoi(item)
 		if err != nil {
-			return nil, fmt.Errorf("invalid value %q", item)
+			return nil, fmt.Errorf("некорректное значение %q", item)
 		}
 		if n == 0 || n < -2 || n > 31 {
-			return nil, fmt.Errorf("day of month %d out of range", n)
+			return nil, fmt.Errorf("день месяца %d вне допустимого диапазона", n)
 		}
 		result = append(result, n)
 	}
 	if len(result) == 0 {
-		return nil, fmt.Errorf("empty value list")
+		return nil, fmt.Errorf("пустой список значений")
 	}
 	return result, nil
 }
@@ -218,7 +218,7 @@ func nextDateHandler(w http.ResponseWriter, r *http.Request) {
 	if nowParam != "" {
 		parsedNow, err := time.Parse(dateFormat, nowParam)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("invalid now parameter: %v", err), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("некорректный параметр now: %v", err), http.StatusBadRequest)
 			return
 		}
 		now = parsedNow

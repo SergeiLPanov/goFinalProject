@@ -30,7 +30,7 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON: "+err.Error())
+		writeError(w, http.StatusBadRequest, "некорректный JSON: "+err.Error())
 		return
 	}
 
@@ -65,7 +65,7 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 
 		cookie, err := r.Cookie("token")
 		if err != nil {
-			http.Error(w, "Authentication required", http.StatusUnauthorized)
+			http.Error(w, "Требуется аутентификация", http.StatusUnauthorized)
 			return
 		}
 
@@ -74,7 +74,7 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 			return jwtSecret, nil
 		})
 		if err != nil || !token.Valid || claims.Hash != passwordHash(password) {
-			http.Error(w, "Authentication required", http.StatusUnauthorized)
+			http.Error(w, "Требуется аутентификация", http.StatusUnauthorized)
 			return
 		}
 

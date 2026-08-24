@@ -28,7 +28,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 func decodeTask(r *http.Request) (db.Task, error) {
 	var task db.Task
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		return task, fmt.Errorf("invalid JSON: %w", err)
+		return task, fmt.Errorf("некорректный JSON: %w", err)
 	}
 
 	if task.Title == "" {
