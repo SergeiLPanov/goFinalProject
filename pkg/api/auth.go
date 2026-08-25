@@ -15,6 +15,12 @@ var jwtSecret = []byte("goFinalProject-jwt-secret")
 
 const tokenTTL = 8 * time.Hour
 
+var authPassword string
+
+func initAuth() {
+	authPassword = os.Getenv("TODO_PASSWORD")
+}
+
 type passwordClaims struct {
 	Hash string `json:"hash"`
 	jwt.RegisteredClaims
@@ -34,14 +40,13 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	storedPassword := os.Getenv("TODO_PASSWORD")
-	if storedPassword == "" || req.Password != storedPassword {
+	if authPassword == "" || req.Password != authPassword {
 		writeError(w, http.StatusUnauthorized, "Неверный пароль")
 		return
 	}
 
 	claims := passwordClaims{
-		Hash: passwordHash(storedPassword),
+		Hash: passwordHash(authPassword),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenTTL)),
 		},
@@ -57,15 +62,14 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 
 func auth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		password := os.Getenv("TODO_PASSWORD")
-		if password == "" {
+		if authPassword == "" {
 			next(w, r)
 			return
 		}
 
 		cookie, err := r.Cookie("token")
 		if err != nil {
-			http.Error(w, "Требуется аутентификация", http.StatusUnauthorized)
+			writeError(w, http.StatusUnauthorized, "Требуется аутентификация")
 			return
 		}
 
@@ -73,8 +77,8 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 		token, err := jwt.ParseWithClaims(cookie.Value, claims, func(t *jwt.Token) (any, error) {
 			return jwtSecret, nil
 		})
-		if err != nil || !token.Valid || claims.Hash != passwordHash(password) {
-			http.Error(w, "Требуется аутентификация", http.StatusUnauthorized)
+		if err != nil || !token.Valid || claims.Hash != passwordHash(authPassword) {
+			writeError(w, http.StatusUnauthorized, "Требуется аутентификация")
 			return
 		}
 

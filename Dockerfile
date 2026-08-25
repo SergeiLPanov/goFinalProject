@@ -5,7 +5,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o /out/todo main.go
 
-FROM ubuntu:latest
+FROM alpine:latest
 WORKDIR /app
 COPY --from=build /out/todo ./todo
 COPY web ./web
@@ -13,7 +13,5 @@ RUN mkdir -p /app/data
 
 ENV TODO_PORT=7540
 ENV TODO_DBFILE=/app/data/scheduler.db
-
-EXPOSE 7540
 
 ENTRYPOINT ["./todo"]

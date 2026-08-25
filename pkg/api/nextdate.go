@@ -10,6 +10,8 @@ import (
 
 const dateFormat = "20060102"
 
+const maxSearchDays = 1830
+
 func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	if repeat == "" {
 		return "", fmt.Errorf("не указано правило повторения")
@@ -21,6 +23,9 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	}
 
 	parts := strings.Fields(repeat)
+	if len(parts) == 0 {
+		return "", fmt.Errorf("не указано правило повторения")
+	}
 
 	switch parts[0] {
 	case "d":
@@ -51,11 +56,16 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		for {
+		found := false
+		for i := 0; i < maxSearchDays; i++ {
 			date = date.AddDate(0, 0, 1)
 			if weekdays[isoWeekday(date)] && afterNow(date, now) {
+				found = true
 				break
 			}
+		}
+		if !found {
+			return "", fmt.Errorf("не удалось найти подходящую дату для правила %q", repeat)
 		}
 
 	case "m":
@@ -63,11 +73,16 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		for {
+		found := false
+		for i := 0; i < maxSearchDays; i++ {
 			date = date.AddDate(0, 0, 1)
 			if monthMatches(date, months) && dayMatches(date, days) && afterNow(date, now) {
+				found = true
 				break
 			}
+		}
+		if !found {
+			return "", fmt.Errorf("не удалось найти подходящую дату для правила %q", repeat)
 		}
 
 	default:

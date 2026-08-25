@@ -3,6 +3,8 @@ package api
 import "net/http"
 
 func Init() {
+	initAuth()
+
 	http.HandleFunc("/api/nextdate", nextDateHandler)
 	http.HandleFunc("/api/signin", signInHandler)
 	http.HandleFunc("/api/task", auth(taskHandler))
@@ -20,5 +22,7 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		editTaskHandler(w, r)
 	case http.MethodDelete:
 		deleteTaskHandler(w, r)
+	default:
+		writeError(w, http.StatusMethodNotAllowed, "метод не поддерживается")
 	}
 }
