@@ -13,7 +13,7 @@ import (
 
 var jwtSecret = []byte("goFinalProject-jwt-secret")
 
-const tokenTTL = 8 * time.Hour
+const tokenTTL = 720 * time.Hour
 
 var authPassword string
 
@@ -32,6 +32,11 @@ func passwordHash(password string) string {
 }
 
 func signInHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "метод не поддерживается")
+		return
+	}
+
 	var req struct {
 		Password string `json:"password"`
 	}

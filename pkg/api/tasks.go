@@ -13,6 +13,11 @@ type TasksResp struct {
 }
 
 func tasksHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeError(w, http.StatusMethodNotAllowed, "метод не поддерживается")
+		return
+	}
+
 	search := r.FormValue("search")
 
 	tasks, err := db.TasksSearch(search, tasksLimit)

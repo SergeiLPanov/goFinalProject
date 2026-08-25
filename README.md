@@ -79,10 +79,26 @@ go test ./tests
 * `DBFile` — путь к файлу БД относительно директории `tests` (по умолчанию `../scheduler.db`);
 * `FullNextDate = true` — включает проверку правил `w` и `m` в `TestNextDate`;
 * `Search = true` — включает проверку поиска в `TestTasks`;
-* `Token` — если сервер запущен с `TODO_PASSWORD`, сюда нужно вставить
-  JWT-токен, полученный от `POST /api/signin` (тело `{"password": "..."}`,
-  токен берётся из поля `token` ответа). Если `TODO_PASSWORD` не задан,
-  оставьте `Token` пустой строкой.
+* `Token` — уже заполнен рабочим JWT-токеном для проверки аутентификации.
+  Чтобы он сработал, запустите сервер с `TODO_PASSWORD=todoTest2026`
+  (именно этот пароль использовался при генерации токена):
+
+  ```bash
+  TODO_PASSWORD=todoTest2026 go run main.go
+  ```
+
+  Токен выдан со сроком действия 30 дней; если он всё же истёк, получите
+  новый и замените значение `Token` в `tests/settings.go`:
+
+  ```bash
+  curl -X POST http://localhost:7540/api/signin \
+    -H "Content-Type: application/json" \
+    -d '{"password":"todoTest2026"}'
+  ```
+
+  Значение поля `token` из ответа и есть новый `Token`. Если запустить
+  сервер без `TODO_PASSWORD`, аутентификация отключается и значение
+  `Token` попросту игнорируется — тесты проходят как обычно.
 
 ## Запуск через Docker
 
